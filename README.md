@@ -25,7 +25,7 @@ A CLI tool that parses an XML sitemap...
 
 1. **Clone the repository** (if you haven't already) and navigate to the project directory:
    ```bash
-   cd html_size_reviewer
+   cd htmlephant
    ```
 
 2. **Install the dependencies**:
