@@ -26,8 +26,8 @@ from rich.progress import (
 # Default HTTP headers for sitemap fetching.
 DEFAULT_HEADERS = {
     "User-Agent": (
-        "SitemapPageWeightAuditor/1.0 "
-        "(+https://github.com/page-weight-auditor)"
+        "HTMLephant/1.0 "
+        "(+https://github.com/htmlephant)"
     ),
     "Accept": "application/xml, text/xml, */*",
 }

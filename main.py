@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sitemap Page-Weight Auditor.
+"""HTMLephant - The Sitemap Page-Weight Auditor.
 
 A CLI tool that parses an XML sitemap, groups URLs into page templates,
 crawls sample pages, and reports the heaviest inline HTML elements.
@@ -51,7 +51,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=(
-            "Sitemap Page-Weight Auditor — Identify the heaviest "
+            "HTMLephant 🐘 — Identify the heaviest "
             "elements in your HTML files."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -137,7 +137,7 @@ def main() -> int:
     # --- Banner ---
     console.print()
     console.print(Panel(
-        "[bold]Sitemap Page-Weight Auditor[/]\n"
+        "[bold]HTMLephant 🐘[/]\n"
         f"[dim]Sitemap:[/] {args.sitemap_url}\n"
         f"[dim]Samples per template:[/] {args.samples}\n"
         f"[dim]Output:[/] {args.output}",

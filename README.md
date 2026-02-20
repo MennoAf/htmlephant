@@ -1,6 +1,10 @@
-# Sitemap Page-Weight Auditor
+<div align="center">
+  <img src="assets/logo.png" alt="HTMLephant Logo" width="200"/>
+  <h1>HTMLephant 🐘</h1>
+  <p><i>The Sitemap Page-Weight Auditor</i></p>
+</div>
 
-A CLI tool that parses an XML sitemap, groups URLs into page templates, crawls sample pages, and reports the heaviest inline HTML elements. This tool is designed to help you identify heavy fragments of code, large embedded data (like base64 images or inline JSON), and excessive DOM elements that are bloating your HTML payload size.
+A CLI tool that parses an XML sitemap...
 
 ## Features
 

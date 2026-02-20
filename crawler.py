@@ -28,7 +28,7 @@ DEFAULT_HEADERS = {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36 "
-        "SitemapPageWeightAuditor/1.0"
+        "HTMLephant/1.0"
     ),
     "Accept": (
         "text/html,application/xhtml+xml,application/xml;"
