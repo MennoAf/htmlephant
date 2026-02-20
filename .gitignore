@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+crawled_pages/
+*.json
+*.xlsx
+.venv/
+Env/
+venv/
+env/
