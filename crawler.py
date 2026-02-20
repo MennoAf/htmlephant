@@ -121,8 +121,10 @@ def crawl_pages(
     # Helper function for one url
     def _process_url(template: str, url: str) -> tuple[str, str, str, str]:
         """Returns (template, url, html, status_msg)"""
+        # Sanitize template name so it doesn't cause os.path.join to jump to root
+        safe_template = re.sub(r"[^a-zA-Z0-9_\-]", "_", template.strip("/")) or "root"
         filename = _sanitize_filename(url)
-        cache_path = os.path.join(cache_dir, f"{template}_{filename}")
+        cache_path = os.path.join(cache_dir, f"{safe_template}_{filename}")
 
         if os.path.exists(cache_path):
             with open(cache_path, "r", encoding="utf-8") as fh:
