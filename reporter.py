@@ -391,6 +391,7 @@ def write_excel_report(
 
     # --- TAB 1: Process Page Findings ---
     page_rows = []
+    js_payload_rows = []
 
     if "pages" in report:
         for template_name, pages_list in report["pages"].items():
@@ -425,7 +426,20 @@ def write_excel_report(
                         })
                         page_rows.append(row)
 
+                        # Capture json-nodes for the Large JS Payloads tab
+                        if finding.get("element_type") == "json-node":
+                            js_payload_rows.append({
+                                "URL": page.get("url"),
+                                "Template": template_name,
+                                "Element Identifier": _clean_str(finding.get("element_identifier")),
+                                "Description": _clean_str(finding.get("description")),
+                                "Size (Bytes)": finding.get("size_bytes"),
+                                "Percent of Page": finding.get("percent_of_page"),
+                                "Snippet": _clean_str(finding.get("searchable_snippet"))
+                            })
+
     df_pages = pd.DataFrame(page_rows)
+    df_js_payloads = pd.DataFrame(js_payload_rows)
 
     # --- TAB 2: Process Aggregated Findings ---
     agg_rows = []
@@ -454,6 +468,8 @@ def write_excel_report(
     with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
         df_pages.to_excel(writer, sheet_name='Page Findings', index=False)
         df_agg.to_excel(writer, sheet_name='Aggregated Findings', index=False)
+        if not df_js_payloads.empty:
+            df_js_payloads.to_excel(writer, sheet_name='Large JS Payloads', index=False)
 
         # Apply rich styling to make it user-friendly
         from openpyxl.styles import Font, PatternFill, Alignment
