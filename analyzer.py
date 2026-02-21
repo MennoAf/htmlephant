@@ -7,6 +7,7 @@ base64 data URIs, JSON-LD blocks, and large DOM subtrees).
 """
 
 import re
+import json
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -47,6 +48,7 @@ class Finding:
     pages_found_on: list[str] = field(default_factory=list)
     scope: str = "page-specific"  # "site-wide", "template-wide", etc.
     searchable_snippet: str = ""
+    is_subcomponent: bool = False
 
     def to_dict(self) -> dict:
         """Convert to a JSON-serializable dictionary."""
@@ -84,7 +86,7 @@ class PageAnalysis:
     @property
     def total_flagged_bytes(self) -> int:
         """Sum of all finding sizes."""
-        return sum(f.size_bytes for f in self.findings)
+        return sum(f.size_bytes for f in self.findings if not f.is_subcomponent)
 
     @property
     def flagged_percent(self) -> float:
@@ -114,6 +116,51 @@ def _element_byte_size(element: Tag) -> int:
 def _content_byte_size(text: str) -> int:
     """Get the byte size of a text string."""
     return len(text.encode("utf-8"))
+
+
+def _analyze_json_bloat(
+    json_data: dict,
+    total_bytes: int,
+    url: str,
+    parent_identifier: str,
+    min_node_bytes: int = 5000,
+) -> list[Finding]:
+    """Find the largest nodes within a JSON payload."""
+    findings = []
+    
+    for key, value in json_data.items():
+        try:
+            node_str = json.dumps(value)
+            node_size = len(node_str.encode("utf-8"))
+            
+            if node_size >= min_node_bytes:
+                # Add finding for this node
+                findings.append(Finding(
+                    element_type="json-node",
+                    element_identifier=f"{parent_identifier} -> [\"{key}\"]",
+                    description=f"Large JSON node ('{key}') in script payload",
+                    visibility="backend",
+                    size_bytes=node_size,
+                    percent_of_page=(node_size / total_bytes * 100) if total_bytes else 0,
+                    priority="primary",
+                    pages_found_on=[url],
+                    searchable_snippet=f"\"{key}\": " + _extract_snippet(node_str, max_length=100),
+                    is_subcomponent=True,
+                ))
+                
+                # Recurse if children are also large dicts
+                if isinstance(value, dict) and node_size >= min_node_bytes * 2:
+                    findings.extend(_analyze_json_bloat(
+                        value,
+                        total_bytes,
+                        url,
+                        parent_identifier=f"{parent_identifier} -> [\"{key}\"]",
+                        min_node_bytes=min_node_bytes
+                    ))
+        except (TypeError, ValueError):
+            continue
+            
+    return findings
 
 
 def _analyze_inline_scripts(
@@ -161,6 +208,19 @@ def _analyze_inline_scripts(
                     pages_found_on=[url],
                     searchable_snippet=_extract_snippet(script),
                 ))
+
+                # Also analyze the JSON for large internal nodes
+                try:
+                    json_data = json.loads(content)
+                    if isinstance(json_data, dict):
+                        findings.extend(_analyze_json_bloat(
+                            json_data,
+                            total_bytes,
+                            url,
+                            parent_identifier=identifier
+                        ))
+                except (json.JSONDecodeError, TypeError):
+                    pass
         elif size >= MIN_INLINE_SCRIPT_BYTES:
             description, visibility = classify_inline_content(content)
             identifier = get_element_identifier(
