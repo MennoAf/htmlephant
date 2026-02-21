@@ -241,6 +241,32 @@ def _analyze_inline_scripts(
                 pages_found_on=[url],
                 searchable_snippet=_extract_snippet(script),
             ))
+            
+            # Analyze hydration payloads for bloat
+            if "React Router" in description or "Hydrogen" in description or "Next.js" in description:
+                try:
+                    # Look for streamController.enqueue("...") or similar patterns passing a string
+                    match = re.search(r'enqueue\((["\'])(.*?)\1\)', content, re.DOTALL)
+                    if match:
+                        payload_str = match.group(2)
+                        decoded_payload = payload_str.encode().decode('unicode_escape')
+                        json_start = re.search(r'[\[\{]', decoded_payload)
+                        if json_start:
+                            json_str = decoded_payload[json_start.start():]
+                            json_data = json.loads(json_str)
+                            if isinstance(json_data, (dict, list)):
+                                # If it's a list, wrap it in a pseudo-dict to fit our recursive analyzer
+                                if isinstance(json_data, list):
+                                    json_data = {"__hydration_array__": json_data}
+                                    
+                                findings.extend(_analyze_json_bloat(
+                                    json_data,
+                                    total_bytes,
+                                    url,
+                                    parent_identifier=identifier
+                                ))
+                except Exception:
+                    pass
 
     return findings
 
